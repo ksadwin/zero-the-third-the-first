@@ -81,6 +81,13 @@ def spectate_game():
     LOG.warning(str(response))
 
 
+def send_message(message):
+    global COOKIES, GID, BASE_URL, PW
+    data = {CAH_AjaxRequest_OP:CAH_AjaxOperation_GAME_CHAT,CAH_AjaxRequest_SERIAL:SERIAL,CAH_AjaxRequest_GAME_ID:GID,CAH_AjaxRequest_MESSAGE:message}
+    response = make_ajaxservlet_request(data)
+    LOG.warning(str(response))
+
+
 def logout():
     global COOKIES, GID, BASE_URL, PW
     data = {CAH_AjaxRequest_OP:CAH_AjaxOperation_LOG_OUT,CAH_AjaxRequest_SERIAL:SERIAL}
@@ -94,8 +101,9 @@ def leave_game():
     response =  make_ajaxservlet_request(data)
     LOG.warning(str(response))
 
-
-# EVENT HANDLERS
+#######################
+# EVENT HANDLERS      #
+#######################
 
 def event_kick_bot(json_dict):
     # check if message says "?kick NICKNAME". If so, return True
@@ -105,7 +113,14 @@ def event_kick_bot(json_dict):
             return True
     return False
 
-
+def event_whomst(json_dict):
+    # check if contains "who" and NICKNAME. If so, return True
+    if CAH_LongPollResponse_MESSAGE in json_dict:
+        message = json_dict[CAH_LongPollResponse_MESSAGE]
+        message = message.lower()
+        if "who" in message and NICKNAME.lower() in message:
+            return True
+    return False
 
 def main():
     url = input("Game URL: ")
@@ -116,7 +131,9 @@ def main():
     if get_game_attributes(url) and register_user():
         spectate_game()
 
-        # MAIN EVENT LISTENER LOOP
+        ###############################
+        # MAIN EVENT LISTENER LOOP    #
+        ###############################
         stop_condition = False
         while not stop_condition:
             response = make_longpollservlet_request()
@@ -128,13 +145,22 @@ def main():
                     if CAH_LongPollResponse_EVENT in json_dict:
                         event_type = json_dict[CAH_LongPollResponse_EVENT]
 
-                        # EVENTS
+                        ################
+                        # EVENT LIST   #
+                        ################
                         if event_type == CAH_LongPollEvent_CHAT:
+                            # CHAT EVENTS
                             if event_kick_bot(json_dict):
                                 # Command to leave server - leave game & set stop condition
                                 stop_condition = True
                                 leave_game()
+                            elif event_whomst(json_dict):
+                                # Command to send introductory message
+                                send_message("I am the king of this kingdom!")
 
+        #####################################
+        # MAIN EVENT LISTENER LOOP COMPLETE #
+        #####################################
         LOG.warning("COMPLETE")
 
 
