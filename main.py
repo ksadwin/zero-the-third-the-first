@@ -4,14 +4,8 @@ from json.decoder import JSONDecodeError
 import time
 # import re
 
-import logging
-LOG = logging.getLogger()
-# I can't figure out how to get statements lower than warning() to print, so we're just going to work with that.
-# LOG.setLevel(40)
-
 from constants import *
 from config import *
-
 
 # constants
 BASE_URL = ""
