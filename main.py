@@ -4,15 +4,20 @@ from json.decoder import JSONDecodeError
 import time
 # import re
 
+import logging
+LOG = logging.getLogger()
+# I can't figure out how to get statements lower than warning() to print, so we're just going to work with that.
+# LOG.setLevel(40)
+
 from constants import *
 from config import *
+
 
 # constants
 BASE_URL = ""
 GID = ""
 PW = ""
 COOKIES = dict()
-
 
 def make_ajaxservlet_request(data):
     r = requests.post(BASE_URL+"/AjaxServlet",
@@ -68,6 +73,8 @@ def register_user():
     data = {CAH_AjaxRequest_OP:CAH_AjaxOperation_REGISTER,CAH_AjaxRequest_SERIAL:SERIAL,CAH_AjaxRequest_NICKNAME:NICKNAME}
     response =  make_ajaxservlet_request(data)
     LOG.warning(str(response))
+    if response == None:    #was getting an error for trying to iterate over None
+        return True
     if CAH_AjaxRequest_NICKNAME in response:
         return True
     else:
@@ -80,13 +87,11 @@ def spectate_game():
     response =  make_ajaxservlet_request(data)
     LOG.warning(str(response))
 
-
 def send_message(message):
     global COOKIES, GID, BASE_URL, PW
     data = {CAH_AjaxRequest_OP:CAH_AjaxOperation_GAME_CHAT,CAH_AjaxRequest_SERIAL:SERIAL,CAH_AjaxRequest_GAME_ID:GID,CAH_AjaxRequest_MESSAGE:message}
     response = make_ajaxservlet_request(data)
     LOG.warning(str(response))
-
 
 def logout():
     global COOKIES, GID, BASE_URL, PW
@@ -94,13 +99,12 @@ def logout():
     response =  make_ajaxservlet_request(data)
     LOG.warning(str(response))
 
-
 def leave_game():
     global COOKIES, GID, BASE_URL, PW
     data = {CAH_AjaxRequest_OP:CAH_AjaxOperation_LEAVE_GAME,CAH_AjaxRequest_SERIAL:SERIAL,CAH_AjaxRequest_GAME_ID:GID}
     response =  make_ajaxservlet_request(data)
     LOG.warning(str(response))
-
+    
 #######################
 # EVENT HANDLERS      #
 #######################
@@ -125,7 +129,11 @@ def event_whomst(json_dict):
 def main():
     url = input("Game URL: ")
     # passwords not needed for spectators, eyes emoji
-    # PW = input("Password?: ")
+    PW = input("Password?: ")
+
+    
+    whom_replies = ["I am the king of this kingdom!", "I'm a rabbit.", "I'm an AI.", "I'm an artificial intelligence, powered by a quantum computer.",
+                "I'm just the...facilitator for this game.","I'm sure you've got loooooots of questions. It just seems silly to have a big old chit-chat right now.","..."]
 
     # get cookies, game ID, server URL, register user, and spectate game
     if get_game_attributes(url) and register_user():
@@ -135,10 +143,11 @@ def main():
         # MAIN EVENT LISTENER LOOP    #
         ###############################
         stop_condition = False
+        response_number = 0
         while not stop_condition:
             response = make_longpollservlet_request()
             LOG.warning(str(response))
-
+            
             # Any response in the form of a list of dictionaries has an event.
             if isinstance(response, list):
                 for json_dict in response:
@@ -156,12 +165,15 @@ def main():
                                 leave_game()
                             elif event_whomst(json_dict):
                                 # Command to send introductory message
-                                send_message("I am the king of this kingdom!")
+                                reply_num = response_number
+                                if reply_num >= len(whom_replies):
+                                    reply_num = len(whom_replies) - 1
+                                send_message(whom_replies[reply_num])
+                                response_number+=1
 
         #####################################
         # MAIN EVENT LISTENER LOOP COMPLETE #
         #####################################
-        LOG.warning("COMPLETE")
-
+        LOG.warning("COMPLETE")        
 
 main()
