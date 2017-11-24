@@ -1,7 +1,6 @@
 import requests
 import json
 from json.decoder import JSONDecodeError
-import time
 # import re
 
 from constants import *
@@ -60,19 +59,16 @@ def get_game_attributes(url):
 
 def register_user():
     global COOKIES, GID, BASE_URL, PW
-    # Get cookies from game.jsp.
+    # Get cookies from game.jsp
     r = requests.get(BASE_URL+"/game.jsp")
     COOKIES = r.cookies
     # Make register request
     data = {CAH_AjaxRequest_OP:CAH_AjaxOperation_REGISTER,CAH_AjaxRequest_SERIAL:SERIAL,CAH_AjaxRequest_NICKNAME:NICKNAME}
     response =  make_ajaxservlet_request(data)
     LOG.warning(str(response))
-    if response == None:    #was getting an error for trying to iterate over None
-        return True
-    if CAH_AjaxRequest_NICKNAME in response:
-        return True
-    else:
+    if not response or CAH_AjaxRequest_NICKNAME not in response:
         return False
+    return True
 
 
 def spectate_game():
@@ -81,11 +77,13 @@ def spectate_game():
     response =  make_ajaxservlet_request(data)
     LOG.warning(str(response))
 
+
 def send_message(message):
     global COOKIES, GID, BASE_URL, PW
     data = {CAH_AjaxRequest_OP:CAH_AjaxOperation_GAME_CHAT,CAH_AjaxRequest_SERIAL:SERIAL,CAH_AjaxRequest_GAME_ID:GID,CAH_AjaxRequest_MESSAGE:message}
     response = make_ajaxservlet_request(data)
     LOG.warning(str(response))
+
 
 def logout():
     global COOKIES, GID, BASE_URL, PW
@@ -93,12 +91,14 @@ def logout():
     response =  make_ajaxservlet_request(data)
     LOG.warning(str(response))
 
+
 def leave_game():
     global COOKIES, GID, BASE_URL, PW
     data = {CAH_AjaxRequest_OP:CAH_AjaxOperation_LEAVE_GAME,CAH_AjaxRequest_SERIAL:SERIAL,CAH_AjaxRequest_GAME_ID:GID}
     response =  make_ajaxservlet_request(data)
     LOG.warning(str(response))
-    
+
+
 #######################
 # EVENT HANDLERS      #
 #######################
@@ -111,6 +111,7 @@ def event_kick_bot(json_dict):
             return True
     return False
 
+
 def event_whomst(json_dict):
     # check if contains "who" and NICKNAME. If so, return True
     if CAH_LongPollResponse_MESSAGE in json_dict:
@@ -120,14 +121,19 @@ def event_whomst(json_dict):
             return True
     return False
 
+
 def main():
     url = input("Game URL: ")
     # passwords not needed for spectators, eyes emoji
     PW = input("Password?: ")
 
-    
-    whom_replies = ["I am the king of this kingdom!", "I'm a rabbit.", "I'm an AI.", "I'm an artificial intelligence, powered by a quantum computer.",
-                "I'm just the...facilitator for this game.","I'm sure you've got loooooots of questions. It just seems silly to have a big old chit-chat right now.","..."]
+    whom_replies = ["I am the king of this kingdom!",
+                    "I'm a rabbit.",
+                    "I'm an AI.",
+                    "I'm an artificial intelligence, powered by a quantum computer.",
+                    "I'm just the...facilitator for this game.",
+                    "I'm sure you've got loooooots of questions. It just seems silly to have a big old chit-chat right now.",
+                    "..."]
 
     # get cookies, game ID, server URL, register user, and spectate game
     if get_game_attributes(url) and register_user():
@@ -169,5 +175,6 @@ def main():
         # MAIN EVENT LISTENER LOOP COMPLETE #
         #####################################
         LOG.warning("COMPLETE")        
+
 
 main()
