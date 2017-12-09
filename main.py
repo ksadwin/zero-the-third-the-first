@@ -1,6 +1,7 @@
 import requests
 import json
 from json.decoder import JSONDecodeError
+import random
 # import re
 
 from constants import *
@@ -135,6 +136,16 @@ def main():
                     "I'm sure you've got loooooots of questions. It just seems silly to have a big old chit-chat right now.",
                     "..."]
 
+    goodbye_replies = ["Have a nice trace!",
+                       "Have a nice tragedy!",
+                       "Have a nice traitor!",
+                       "Have a nice trap!",
+                       "Have a nice trauma!",
+                       "Have a nice trick!",
+                       "Have a nice trouble!",
+                       "Have a nice trumpet!",
+                       "Have a nice trust!"]
+
     # get cookies, game ID, server URL, register user, and spectate game
     if get_game_attributes(url) and register_user():
         spectate_game()
@@ -162,6 +173,7 @@ def main():
                             if event_kick_bot(json_dict):
                                 # Command to leave server - leave game & set stop condition
                                 stop_condition = True
+                                send_message(goodbye_replies[random.randint(0, len(goodbye_replies)-1)])
                                 leave_game()
                             elif event_whomst(json_dict):
                                 # Command to send introductory message
