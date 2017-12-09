@@ -11,21 +11,19 @@ import tweepy
 from config import *
 
 class Tweeter:
+    API = None
+    last_mention_id = ""
+    last_tweeted_id = ""
+    last_threaded_tweet = ""
+    thread_tweets = True
 
-    self.API = None
-    self.last_mention_id = ""
-    self.last_tweeted_id = ""
-    self.last_threaded_tweet = ""
-    self.thread_tweets = True
+    consumer_key = CONSUMER_KEY
+    consumer_secret = CONSUMER_SECRET
+    acccess_token = ""
+    access_key = ""
 
-    self.consumer_key = CONSUMER_KEY
-    self.consumer_secret = CONSUMER_SECRET
-    self.access_token = ACCESS_TOKEN
-    self.access_secret = ACCESS_SECRET
-
-    def __init__(self, prod):
-        if prod:
-            self.set_prod()
+    def __init__(self, account):
+        self.set_account(account)
 
         self.api_connect()
 
@@ -36,12 +34,13 @@ class Tweeter:
         self.API = tweepy.API(auth)
 
 
-    def set_prod(self):
-        LOG.warning("SETTING PRODUCTION MODE")
-        self.consumer_key = PROD_CONSUMER_KEY
-        self.consumer_secret = PROD_CONSUMER_SECRET
-        self.access_token = PROD_ACCESS_TOKEN
-        self.access_secret = PROD_ACCESS_SECRET
+    def set_account(self, account):
+        LOG.warning("SETTING ACCOUNT: " + account)
+        if account in ACCESS_TOKEN.keys():
+            self.access_token = ACCESS_TOKEN[account]
+            self.access_secret = ACCESS_SECRET[account]
+        else:
+            LOG.error("ACCOUNT "+account+" NOT FOUND, AUTH WILL FAIL")
 
 
     def clean_string(self,string):
@@ -53,6 +52,7 @@ class Tweeter:
     def send_tweet(self, content):
         status = self.API.update_status(content)
         self.last_tweeted_id = status.id_str
+        LOG.warn("tweeted with id: "+status.id_str)
         return status.id_str
 
     def send_thread_tweet(self,content):
@@ -115,14 +115,20 @@ class Tweeter:
 
 
 def main():
-    at = input("Who do we tweet at? ")
+    at = input("Who do we tweet as: lapinstance, foredewindev, delleae? ")
+    whom = input("tweet at someone? ")
     say_what = input("What do we say? ")
-    tweeterer = Tweeter(False)
-    tweet = "@%s %s" % (at, say_what)
-    #tweeterer.send_tweet(tweet)
-    mentions = tweeterer.get_mentions()
-    print(mentions)
-    print("last mention id:: " + tweeterer.last_mention_id)
+    tweeterer = Tweeter(at)
+    pause = input("wait until it says account set please")
+    tweet = "@%s %s" % (whom, say_what)
+    to_send = input("do you want to send this tweet?")
+    if to_send == "yes":
+        tweeterer.send_tweet(tweet)
+    mentions_get = input("do you want to get your mentions?")
+    if mentions_get == "yes":
+        mentions = tweeterer.get_mentions()
+        print(mentions)
+        print("last mention id:: " + tweeterer.last_mention_id)
     #print("Tweet sent!!")
 
 
