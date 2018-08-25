@@ -22,6 +22,8 @@ class Tweeter:
     acccess_token = ""
     access_key = ""
 
+    character_limit = 280
+
     def __init__(self, account):
         self.set_account(account)
 
@@ -111,11 +113,13 @@ class Tweeter:
             return "https://twitter.com/statuses/"+self.last_tweeted_id
         return "https://twitter.com"
 
-    
-
+    def keep_tweet_in_characount(self, tweet):
+        cutoff = self.character_limit -1
+        sizetweet = tweet[:cutoff]
+        return sizetweet
 
 def main():
-    at = input("Who do we tweet as: lapinstance, foredewindev, delleae? ")
+    at = input("Who do we tweet as: lapinstance, foredewindev? ")
     whom = input("tweet at someone? ")
     say_what = input("What do we say? ")
     tweeterer = Tweeter(at)
