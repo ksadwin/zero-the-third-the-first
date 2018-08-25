@@ -6,12 +6,14 @@ import random
 
 from constants import *
 from config import *
+from tweet import Tweeter
 
 # constants
 BASE_URL = ""
 GID = ""
 PW = ""
 COOKIES = dict()
+TWITTER_ACCT = "lapinstance"
 
 def make_ajaxservlet_request(data):
     r = requests.post(BASE_URL+"/AjaxServlet",
@@ -123,6 +125,15 @@ def event_whomst(json_dict):
     return False
 
 
+#######################
+# TWITTER ACCESS      #
+#######################
+
+def connectTwit(account):
+    LOG.warning("connecting to account: " + account)
+    twitCon = Tweeter(account)
+    return twitCon
+
 def main():
     url = input("Game URL: ")
     # passwords not needed for spectators, eyes emoji
@@ -149,6 +160,9 @@ def main():
     # get cookies, game ID, server URL, register user, and spectate game
     if get_game_attributes(url) and register_user():
         spectate_game()
+
+        #get that twitter thing going -- not actually used right now But
+        twote = connectTwit(TWITTER_ACCT)
 
         ###############################
         # MAIN EVENT LISTENER LOOP    #
